@@ -145,3 +145,6 @@ FCM_DJANGO_SETTINGS = {
          # default: False
         "DELETE_INACTIVE_DEVICES": True,
 }
+
+LOGIN_REDIRECT_URL = 'attendance:dashboard'
+LOGOUT_REDIRECT_URL = 'login'

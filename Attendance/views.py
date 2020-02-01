@@ -13,6 +13,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from geopy.distance import geodesic
+from django.contrib.auth.decorators import login_required
 
 class CustomAuthToken(ObtainAuthToken):
 
@@ -156,7 +157,9 @@ def registeradmin(request):
     return render(request, 'signup.html', {'form' : form})
 
 
+@login_required(login_url='login')
 def dashboard(request):
+
     return render(request, 'index.html')
 
 

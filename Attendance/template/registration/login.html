@@ -1,0 +1,103 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:100" rel="stylesheet">
+    <style>
+        body{
+            background-color: #fffdc4;
+        }
+        .login_div{
+            box-shadow: 0 20px 60px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            background-color: #000000;
+            width: 80%;
+            height: auto;
+            margin-top: 4%;
+            border-radius: 5px;
+        }
+        #header_para{
+            padding-top: 10%;
+            font-size: 150%;
+            color: #f7ca18;
+            margin-bottom: 0;
+        }
+        #card{
+            font-family:'Raleway', sans-serif;
+            opacity: .7;
+            font-size: 200%;
+        }
+        #hr1{
+            border-radius: 4px;
+            width: 1.5%;
+            height: 4px;
+            background-color:#f7ca18;
+            border: none;
+            display: inline-block;
+            margin-left: 6%;
+        }
+        #hr2{
+            border-radius: 4px;
+            width: 5.5%;
+            height: 4px;
+            background-color:#f7ca18;
+            border: none;
+            display: inline-block;
+        }
+        .input_style:focus{width:80% !important}
+        .input_style{
+            -webkit-transition:width 0.4s ease-in-out;transition:width 0.4s ease-in-out;
+            width: 50%;
+            height: 40px;
+            background-color: #f7ca18;
+            outline: none;
+            border: none;
+            border-radius: 10.1px;
+            padding-left: 10px;
+            color: black;
+        }
+        #login_button{
+            box-shadow: 0 8px 60px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            width: 200px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 10%;
+            outline: none;
+            background-color: #f7ca18;
+            transition: 400ms ease-in-out;
+            color: black;
+        }
+        #login_button:hover{
+            background-color: #ffffff;
+            color: white;
+        }
+        #forgot a{
+            font-size: 120%;
+            color: white;
+        }
+
+    </style>
+</head>
+
+<body>
+<center>
+    <div class="login_div">
+        <p id="header_para" class=""><b>NYKS</b><span id="card"> Login Panel</span></p>
+        <hr id="hr1" />&nbsp
+        <hr id="hr2" /><br /><br /><br />
+        <form action="" method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="username" required class="input_style w3-animate-right"><br /><br />
+            <input type="password" name="password" placeholder="password" required class="input_style w3-animate-left"><br /><br />
+            <input type="submit" name="submit_button" value="LOGIN" id="login_button" class="w3-animate-bottom"><br />
+            <h3 style="color: white;!important; padding-bottom: 100px;!important;">Not Registered? Signup <a href="{% url  "attendance:registeradmin" %}">here</a></h3>
+        </form>
+
+    </div>
+</center>
+</body>
+
+</html>
