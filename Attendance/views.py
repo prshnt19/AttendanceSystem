@@ -54,7 +54,7 @@ class register(APIView):
         except:
             return  Response({'status':'Center Does not exist'})
         try:
-            user = User.objects.create(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
         except:
             return Response({'status':'User Name already exists'})
 
