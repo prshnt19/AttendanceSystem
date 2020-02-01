@@ -64,7 +64,7 @@ def upload(request):
     else:
         protocol = 'http://'
     # target_path = protocol + '127.0.0.1:8000/static/' + user_id
-    
+
 def registeradmin(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -73,16 +73,16 @@ def registeradmin(request):
             username = userObj['username']
             email =  userObj['email']
             password =  userObj['password']
-            center_token = userObj['']
-            contact_number = userObj['']
-            center_name = userObj['']
-            first_name = userObj['']
-            last_name = userObj['']
+            center_token = userObj['centre_id']
+            contact_number = userObj['contact']
+            center_name = userObj['centre_name']
+            first_name = userObj['first_name']
+            last_name = userObj['last_name']
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
                 user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
                 try:
-                    center = Centers.objects.filter(name=center_name, center_id=center_token)
+                    center = Centers.objects.filter(name=center_name, center_id=center_token).first()
                 except:
                     return forms.ValidationError('Center token or name Invalid')
                     
