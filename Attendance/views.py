@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from attendance_system.settings import BASE_DIR
+import os
 from voiceit2 import VoiceIt2
 from django.contrib.auth.models import User
 from .models import UserProfile, Centers
@@ -10,7 +12,8 @@ from django.contrib.auth import authenticate, login
 from .forms import UserRegistrationForm
 from django.http import HttpResponseRedirect
 from django import forms
-
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -49,7 +52,19 @@ class register(APIView):
         
         return Response({'status':'User Created'})
 
-
+def upload(request):
+    user_id = request.POST('user_id')
+    file = request.FILES['file']
+    file_name = BASE_DIR + '/Attendance/' + user_id
+    with open(file_name, 'wb+') as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+    if request.is_secure():
+        protocol = 'https://'
+    else:
+        protocol = 'http://'
+    # target_path = protocol + '127.0.0.1:8000/static/' + user_id
+    
 def registeradmin(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -74,9 +89,14 @@ def registeradmin(request):
                 UserProfile.objects.create(user=user_created, center = center, is_office_admin = True)
                 user = authenticate(username = username, password = password)
                 login(request, user)
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('dashboard/')
+
             else:
                 raise forms.ValidationError('Looks like a username with that email or password already exists')
     else:
         form = UserRegistrationForm()
     return render(request, 'signup.html', {'form' : form})
+
+
+def dashboard(request):
+    return render(request, 'index.html')
