@@ -58,8 +58,20 @@ def registeradmin(request):
             username = userObj['username']
             email =  userObj['email']
             password =  userObj['password']
+            center_token = userObj['']
+            contact_number = userObj['']
+            center_name = userObj['']
+            first_name = userObj['']
+            last_name = userObj['']
+
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                User.objects.create_user(username, email, password)
+                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
+                try:
+                    center = Centers.objects.filter(name=center_name, center_id=center_token)
+                except:
+                    return forms.ValidationError('Center token or name Invalid')
+                    
+                UserProfile.objects.create(user=user_created, center = center, is_office_admin = True)
                 user = authenticate(username = username, password = password)
                 login(request, user)
                 return HttpResponseRedirect('/')
