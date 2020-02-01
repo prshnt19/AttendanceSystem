@@ -5,13 +5,16 @@ from rest_framework.permissions import IsAuthenticated
 # from .serializer import LocationSerializer
 from django.contrib.auth.models import User
 from voiceit2 import VoiceIt2
-from Attendance.models import UserProfile
+from Attendance.models import UserProfile, AttendanceTable
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
-from attendance_system.settings import BASE_DIR
+from attendance_system.settings import BASE_DIR, api_key, api_token
 import uuid
 import os
 from voiceit2 import VoiceIt2
+from geopy.distance import geodesic
+from math import radians, sin, cos, acos
+
 
 # usr_6a69dbdcedca4d6ea82c90a9af31b9f5 prashant
 # usr_afca986a9db2473d932228735d298957 siddharth
@@ -20,8 +23,6 @@ from voiceit2 import VoiceIt2
 
 
 def voiceit_create_group(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
     my_voiceit = VoiceIt2(api_key, api_token)
     description = "Developer"
     response = my_voiceit.create_group(description)
@@ -29,8 +30,6 @@ def voiceit_create_group(request):
 
 
 def voiceit_create_user(group_id, user):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
     my_voiceit = VoiceIt2(api_key, api_token)
     response = my_voiceit.create_user()
     os.mkdir(os.path.join(BASE_DIR, 'test', str(user.id)))
@@ -43,8 +42,6 @@ def voiceit_create_user(group_id, user):
 
 
 def voiceit_enroll_user(user_id, file_path, phrase):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
     my_voiceit = VoiceIt2(api_key, api_token)
     # user_id = 'usr_afca986a9db2473d932228735d298957'  #
     content_language = 'en-US'
@@ -55,8 +52,6 @@ def voiceit_enroll_user(user_id, file_path, phrase):
 
 
 def voiceit_identification(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
     my_voiceit = VoiceIt2(api_key, api_token)
     group_id = 'gid'  #
     content_language = 'en-US'
@@ -71,8 +66,6 @@ def voiceit_identification(request):
 
 
 def voiceit_verification(user_id, file_path, phrase):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
     my_voiceit = VoiceIt2(api_key, api_token) #
     content_language = 'en-US'
     video = open(file_path, 'rb')
@@ -134,13 +127,73 @@ class TestVideo(APIView):
 
         file_name = upload(request.data['video'], user.id)
 
+        longitude = float(request.data.get('longitude'))
+        latitude = float(request.data.get('latitude'))
+        user_coordinates = (latitude, longitude)
+
         phrase = 'my face and voice identify me'
         userprofile = UserProfile.objects.filter(user=user).first()
-        res = voiceit_verification(userprofile.voiceit_id, file_name, phrase)
-        if res[0] is True:
-            return Response({'video':'verified','response':res[1]})
+
+        center = userprofile.center
+        center_coordinates = (center.latitude, center.longitude)
+        location_verified = in_range(center_coordinates, user_coordinates)
+
+        attendancetable = AttendanceTable.objects.create(user=user, center=center)
+        if location_verified is True:
+            attendancetable.location_verified = True
+            attendancetable.save()
         else:
-            return Response({'video':'not_verified','response':res[1]})
+            attendancetable.location_verified = False
+            attendancetable.save() 
+        res = voiceit_verification(userprofile.voiceit_id, file_name, phrase)
+        
+        if res[0] is True:
+            attendancetable.voice_face_verified = True
+            attendancetable.save()
+        else:
+            attendancetable.voice_face_verified = False
+            attendancetable.save()
+        if attendancetable.location_verified is True and attendancetable.voice_face_verified is True:
+            attendancetable.present = True
+            return Response({'video':'verified', 'location': 'verified', 'response':res[1]})
+        elif attendancetable.location_verified is True:
+            return Response({'video':'not_verified', 'location': 'verified', 'response':res[1]})
+        elif attendancetable.voice_face_verified is True:
+            return Response({'video':'verified', 'location': 'not_verified', 'response':res[1]})
+        else:
+            return Response({'video':'not_verified', 'location': 'not_verified', 'response':res[1]})
+
+
+
+def in_range(center_coordinates, user_coordiantes):
+    '''
+    >>> from geopy.distance import geodesic
+    >>> newport_ri = (41.49008, -71.312796)
+    >>> cleveland_oh = (41.499498, -81.695391)
+    >>> print(geodesic(newport_ri, cleveland_oh).miles)
+    538.390445368
+    '''
+    distance = geodesic(center_coordinates, user_coordiantes).meters
+    print(center_coordinates, user_coordiantes, distance)
+    if distance < 30:
+        return True
+    else:
+        return False
+    # approximate radius of earth in km
+    # R = 6373.0
+
+    # lat1 = radians(52.2296756)
+    # lon1 = radians(21.0122287)
+    # lat2 = radians(52.406374)
+    # lon2 = radians(16.9251681)
+
+    # dlon = lon2 - lon1
+    # dlat = lat2 - lat1
+
+    # a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    # c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    # distance = R * c/1000
 # class test1(APIView):
 #     # def get(self,request):
         

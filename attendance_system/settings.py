@@ -156,3 +156,6 @@ CELERY_TIME_ZONE = 'Asia/Kolkata'
 
 LOGIN_REDIRECT_URL = 'attendance:dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
+api_key = 'key_64edce00a02e4ab2b359795016565d11'
+api_token = 'tok_c43630b526d04019b52228e70647d6ba'
