@@ -45,7 +45,7 @@ class register(APIView):
         contact_number = request.data.get('contact')
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
-        print(Centers.objects.all().first().name, center_name)
+        print(password)
 
         try:
             center = Centers.objects.filter(name=str(center_name)).first()

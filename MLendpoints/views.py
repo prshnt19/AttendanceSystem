@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated 
 from django.contrib.auth.models import User
+from Attendance.models import UserProfile
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from attendance_system.settings import BASE_DIR
@@ -67,14 +68,12 @@ def voiceit_identification(request):
         return [False, response['message']]
 
 
-def voiceit_verification(request):
+def voiceit_verification(user_id, file_path, phrase):
     api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
     api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
-    my_voiceit = VoiceIt2(api_key, api_token)
-    user_id = 'usr'  #
+    my_voiceit = VoiceIt2(api_key, api_token) #
     content_language = 'en-US'
-    phrase = 'my face and voice identify me'
-    video = open('siddharth1.mp4', 'rb')
+    video = open(file_path, 'rb')
     response = my_voiceit.video_verification(user_id=user_id, lang=content_language, phrase=phrase,
                                              file_buffer=video)
     if response['responseCode'] == 'SUCC':
@@ -98,15 +97,16 @@ class TrainVideo(APIView):
         
         phrase = 'my face and voice identify me'
         userprofile = UserProfile.objects.filter(user=user).first()
-        voiceit_enroll_user(userprofile.voice_it, file_name, phrase)
+        voiceit_enroll_user(userprofile.voiceit_id, file_name, phrase)
         
-        return Response({'work':'sexy'})
+        return Response({'status':'sent'})
 
 def upload(file, user_id):
-    file_name = BASE_DIR + '/test/' + str(user_id) + '/' + str(user_id) + '__' + str(uuid.uuid4)[:3] + '.mp4'
+    file_name = BASE_DIR + '/test/' + str(user_id) + '/' + str(user_id) + '__' + str(uuid.uuid4())[:3] + '.mp4'
     with open(file_name, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
+    print(file_name)        
     return file_name        
     # if request.is_secure():
     #     protocol = 'https://'
@@ -115,20 +115,41 @@ def upload(file, user_id):
     # return file_name
     # target_path = protocol + '127.0.0.1:8000/static/' + user_id
 
-
-class test1(APIView):
+class TestVideo(APIView):
+    permission_classes = (IsAuthenticated,)
     # def get(self,request):
         
     #     location = Location.objects.all()
     #     serializer = LocationSerializer(location, many=True)
     #     return Response({"location": serializer})
-#    parser_classes = (MultiPartParser,)
-    permission_classes = (AllowAny,)
-    def post(self,request,format=None):
+    def post(self,request):
         token_number = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
         token = Token.objects.get(key=token_number)
         user = token.user
-        upload(request.data['video'], user.id)
-        file_obj = 1
-        print(file_obj)
-        return Response({'work':'sex'})
+
+        file_name = upload(request.data['video'], user.id)
+
+        phrase = 'my face and voice identify me'
+        userprofile = UserProfile.objects.filter(user=user).first()
+        res = voiceit_verification(userprofile.voiceit_id, file_name, phrase)
+        if res[0] is True:
+            return Response({'video':'verified'})
+        else:
+            return Response({'video':'not_verified'})
+# class test1(APIView):
+#     # def get(self,request):
+        
+#     #     location = Location.objects.all()
+#     #     serializer = LocationSerializer(location, many=True)
+#     #     return Response({"location": serializer})
+#     #    parser_classes = (MultiPartParser,)
+#     permission_classes = (AllowAny,)
+#     def post(self,request,format=None):
+#         token_number = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
+#         token = Token.objects.get(key=token_number)
+#         user = token.user
+#         print(user)
+#         upload(request.data['video'], user.id)
+#         file_obj = 1
+#         print(file_obj)
+#         return Response({'work':'sex'})
