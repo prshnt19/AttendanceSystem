@@ -15,6 +15,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from geopy.distance import geodesic
+from MLendpoints.views import voiceit_create_user
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -51,20 +52,15 @@ class register(APIView):
         except:
             return Response({'status':'User Name already exists'})
         
-        return Response({'status':'User Created'})
+        token, created = Token.objects.get_or_create(user=user)
 
-def upload(request):
-    user_id = request.POST('user_id')
-    file = request.FILES['file']
-    file_name = BASE_DIR + '/Attendance/' + user_id
-    with open(file_name, 'wb+') as destination:
-        for chunk in file.chunks():
-            destination.write(chunk)
-    if request.is_secure():
-        protocol = 'https://'
-    else:
-        protocol = 'http://'
-    # target_path = protocol + '127.0.0.1:8000/static/' + user_id
+        res = voiceit_create_user(center.voiceit_id)
+        user_profile_voice_it = res[1]
+        
+        user_profile = UserProfile.objects.create(user=user, center=center, is_admin=False, voiceit_id=user_profile_voice_it)
+        return Response({'status':'User Created', 'token': token})
+
+
 
 def registeradmin(request):
     if request.method == 'POST':
