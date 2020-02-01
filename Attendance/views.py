@@ -42,23 +42,27 @@ class register(APIView):
         password = request.data.get('password')
         email = request.data.get('email')
         center_name = request.data.get('center_name')
+        contact_number = request.data.get('contact')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        print(Centers.objects.all().first().name, center_name)
 
         try:
-            center = Centers.object.get.filter(name=center_name).first()
+            center = Centers.objects.filter(name=str(center_name)).first()
         except:
             return  Response({'status':'Center Does not exist'})
         try:
-            user = User.objects.create(username=username, password=password, email=email)
+            user = User.objects.create(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
         except:
             return Response({'status':'User Name already exists'})
         
         token, created = Token.objects.get_or_create(user=user)
 
-        res = voiceit_create_user(center.voiceit_id)
+        res = voiceit_create_user(center.voiceit_id, user)
         user_profile_voice_it = res[1]
         
-        user_profile = UserProfile.objects.create(user=user, center=center, is_admin=False, voiceit_id=user_profile_voice_it)
-        return Response({'status':'User Created', 'token': token})
+        user_profile = UserProfile.objects.create(user=user, center=center, is_office_admin=False, voiceit_id=user_profile_voice_it, contact_number=contact_number)
+        return Response({'status':'User Created', 'token': token.key, 'user_name': user.username})
 
 
 

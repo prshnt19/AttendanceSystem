@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import registeradmin, dashboard, upload
+from .views import registeradmin, dashboard
 
 app_name = 'attendance'
 

@@ -17,6 +17,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_office_admin = models.NullBooleanField(default=None)
     voiceit_id = models.CharField(max_length=40, default=None)
+    contact_number = models.CharField(max_length=10, default=None)
 
 
 class AttendanceTable(models.Model):

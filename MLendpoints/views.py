@@ -8,6 +8,7 @@ from rest_framework.authtoken.models import Token
 from attendance_system.settings import BASE_DIR
 import uuid
 import os
+from voiceit2 import VoiceIt2
 
 # usr_6a69dbdcedca4d6ea82c90a9af31b9f5 prashant
 # usr_afca986a9db2473d932228735d298957 siddharth
@@ -24,12 +25,12 @@ def voiceit_create_group(request):
     return response['groupId']
 
 
-def voiceit_create_user(group_id):
+def voiceit_create_user(group_id, user):
     api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
     api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
     my_voiceit = VoiceIt2(api_key, api_token)
     response = my_voiceit.create_user()
-    os.mkdir(os.path.join(BASE_DIR, 'test', response['user_id']))
+    os.mkdir(os.path.join(BASE_DIR, 'test', str(user.id)))
     response2 = my_voiceit.group_exists(group_id)  #
     if response2['exists']:
         my_voiceit.add_user_to_group(group_id, response['userId'])
