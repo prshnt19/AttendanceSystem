@@ -23,7 +23,7 @@ from django.conf.urls import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/test/', location_views.test.as_view()),
+    path('api/v1/test/', location_views.Location.as_view()),
     path('api/v1/get-auth/', attendance_views.CustomAuthToken.as_view(), name='api_token_auth'),
     path('api/v1/create-auth/', attendance_views.register.as_view()),
     
