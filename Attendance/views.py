@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from attendance_system.settings import BASE_DIR
+import datetime
 import os
 from voiceit2 import VoiceIt2
 from django.contrib.auth.models import User
-from .models import UserProfile, Centers
+from .models import UserProfile, Centers, AttendanceTable
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -90,7 +91,7 @@ def registeradmin(request):
                 user_created = User.objects.create_user(username, email, password, first_name=first_name,
                                                         last_name=last_name)
                 voiceit_id = voiceit_create_user(center_token)
-                UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, mobile=contact_number, voiceit_id=voiceit_id)
+                UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, contact_number=contact_number, voiceit_id=voiceit_id)
                 user = authenticate(username=username, password=password)
                 login(request, user)
                 return HttpResponseRedirect('dashboard/')
@@ -104,7 +105,15 @@ def registeradmin(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    return render(request, 'index.html')
+    user_profile = UserProfile.objects.filter(user=request.user).first()
+    print(request.user)
+    center = user_profile.center
+    employee_count = Centers.objects.filter(id=center.id).count()
+    print(employee_count)
+    employee_present = AttendanceTable.objects.filter(center=center.id, date=datetime.date.today()).count()
+    print(employee_present)
+    context = dict()
+    return render(request, 'index.html', context)
 
 
 def in_range():
