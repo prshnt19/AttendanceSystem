@@ -6,6 +6,11 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from django.contrib.auth import authenticate, login
+from .forms import UserRegistrationForm
+from django.http import HttpResponseRedirect
+from django import forms
+
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -22,6 +27,7 @@ class CustomAuthToken(ObtainAuthToken):
             'user_id': user.pk,
             'email': user.email
         })
+
 
 class register(APIView):
 
@@ -44,3 +50,21 @@ class register(APIView):
         return Response({'status':'User Created'})
 
 
+def registeradmin(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            userObj = form.cleaned_data
+            username = userObj['username']
+            email =  userObj['email']
+            password =  userObj['password']
+            if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
+                User.objects.create_user(username, email, password)
+                user = authenticate(username = username, password = password)
+                login(request, user)
+                return HttpResponseRedirect('/')
+            else:
+                raise forms.ValidationError('Looks like a username with that email or password already exists')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'signup.html', {'form' : form})
