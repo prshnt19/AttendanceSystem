@@ -18,17 +18,23 @@ from django.urls import path
 from rest_framework import routers
 from Location import views as location_views
 from Attendance import views as attendance_views
+from MLendpoints import views as MLviews
 from django.conf.urls import include
 from django.contrib.auth import views as auth_views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/test/', location_views.test.as_view()),
+    # api view
+    path('api/v1/test/', location_views.Location.as_view()),
+    path('api/v1/train-video/', MLviews.TrainVideo.as_view()),
+    path('api/v1/test-video/', MLviews.TestVideo.as_view()),
     path('api/v1/get-auth/', attendance_views.CustomAuthToken.as_view(), name='api_token_auth'),
     path('api/v1/create-auth/', attendance_views.register.as_view()),
+    # django website views
     path("", include('Attendance.urls')),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    path('admin/', admin.site.urls),
 
 ]

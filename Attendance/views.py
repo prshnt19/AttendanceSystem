@@ -2,6 +2,8 @@ from django.shortcuts import render
 from attendance_system.settings import BASE_DIR
 import os
 from voiceit2 import VoiceIt2
+from django.contrib.auth.models import User
+from .models import UserProfile, Centers
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -14,7 +16,9 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from geopy.distance import geodesic
 from django.contrib.auth.decorators import login_required
+from MLendpoints.views import voiceit_create_user
 
+#kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
 
     def post(self, request, *args, **kwargs):
@@ -23,6 +27,7 @@ class CustomAuthToken(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
+        # userprofile = UserProfile.objects.get(user=user)
         return Response({
             'token': token.key,
             'user_id': user.pk,
@@ -38,102 +43,28 @@ class register(APIView):
         password = request.data.get('password')
         email = request.data.get('email')
         center_name = request.data.get('center_name')
+        contact_number = request.data.get('contact')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        print(password)
+
         try:
-            user = User.objects.create(username=username, password=password, email=email)
+            center = Centers.objects.filter(name=str(center_name)).first()
         except:
-            return Response({'status':'User Name exists'})
+            return  Response({'status':'Center Does not exist'})
+        try:
+            user = User.objects.create(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
+        except:
+            return Response({'status':'User Name already exists'})
 
-        center = Centers.object.get.filter(name=center_name).first()
-        user_profile = UserProfile.objects.create(user=user, center=center, is_admin=False)
+        token, created = Token.objects.get_or_create(user=user)
 
-        return Response({'status':'User Created'})
+        res = voiceit_create_user(center.voiceit_id, user)
+        user_profile_voice_it = res[1]
 
+        user_profile = UserProfile.objects.create(user=user, center=center, is_office_admin=False, voiceit_id=user_profile_voice_it, contact_number=contact_number)
+        return Response({'status':'User Created', 'token': token.key, 'user_name': user.username})
 
-# usr_6a69dbdcedca4d6ea82c90a9af31b9f5 prashant
-# usr_afca986a9db2473d932228735d298957 siddharth
-# usr_361ea5aa209047189cc7222ff249a4e5 arpit
-# grp_b3f953e210494f5db673bbd520ff79d8 Developer
-
-
-def voiceit_create_group(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
-    my_voiceit = VoiceIt2(api_key, api_token)
-    description = "Developer"
-    response = my_voiceit.create_group(description)
-    return response['groupId']
-
-
-def voiceit_create_user(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
-    my_voiceit = VoiceIt2(api_key, api_token)
-    response = my_voiceit.create_user()
-    response2 = my_voiceit.group_exists('gid')  #
-    if response2['exists']:
-        my_voiceit.add_user_to_group("grp_b3f953e210494f5db673bbd520ff79d8", response['userId'])
-        return [True, response['userId']]
-    else:
-        return [False, response['userId']]
-
-
-def voiceit_enroll_user(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
-    my_voiceit = VoiceIt2(api_key, api_token)
-    user_id = 'usr_afca986a9db2473d932228735d298957'  #
-    content_language = 'en-US'
-    phrase = 'my face and voice identify me'
-    video = open('siddharth1.mp4', 'rb')
-    response = my_voiceit.create_video_enrollment(user_id=user_id, lang=content_language, phrase=phrase,
-                                                  file_buffer=video)
-    return response['responseCode']
-
-
-def voiceit_identification(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
-    my_voiceit = VoiceIt2(api_key, api_token)
-    group_id = 'gid'  #
-    content_language = 'en-US'
-    phrase = 'my face and voice identify me'
-    video = open('siddharth1.mp4', 'rb')
-    response = my_voiceit.voice_identification(group_id=group_id, lang=content_language, phrase=phrase,
-                                               file_buffer=video)
-    if response['responseCode'] == 'SUCC':
-        return [True, response['user_id']]
-    else:
-        return [False, response['message']]
-
-
-def voiceit_verification(request):
-    api_key = 'key_66f6eb3dbd0c4d7d85bf9e716b3813f4'
-    api_token = 'tok_eff69e97da604bf7a6d13b8ed1400ce9'
-    my_voiceit = VoiceIt2(api_key, api_token)
-    user_id = 'usr'  #
-    content_language = 'en-US'
-    phrase = 'my face and voice identify me'
-    video = open('siddharth1.mp4', 'rb')
-    response = my_voiceit.video_verification(user_id=user_id, lang=content_language, phrase=phrase,
-                                             file_buffer=video)
-    if response['responseCode'] == 'SUCC':
-        return [True, response['message']]
-    else:
-        return [False, response['message']]
-
-
-def upload(request):
-    user_id = request.POST('user_id')
-    file = request.FILES['file']
-    file_name = BASE_DIR + '/Attendance/' + user_id
-    with open(file_name, 'wb+') as destination:
-        for chunk in file.chunks():
-            destination.write(chunk)
-    if request.is_secure():
-        protocol = 'https://'
-    else:
-        protocol = 'http://'
-    # target_path = protocol + '127.0.0.1:8000/static/' + user_id
 
 
 def registeradmin(request):
@@ -144,8 +75,20 @@ def registeradmin(request):
             username = userObj['username']
             email =  userObj['email']
             password =  userObj['password']
+            center_token = userObj['centre_id']
+            contact_number = userObj['contact']
+            center_name = userObj['centre_name']
+            first_name = userObj['first_name']
+            last_name = userObj['last_name']
+
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                User.objects.create_user(username, email, password)
+                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
+                try:
+                    center = Centers.objects.filter(name=center_name, center_id=center_token).first()
+                except:
+                    return forms.ValidationError('Center token or name Invalid')
+
+                UserProfile.objects.create(user=user_created, center = center, is_office_admin = True)
                 user = authenticate(username = username, password = password)
                 login(request, user)
                 return HttpResponseRedirect('dashboard/')
