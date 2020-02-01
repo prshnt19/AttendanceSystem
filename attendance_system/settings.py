@@ -153,3 +153,6 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIME_ZONE =  'Asia/Kolkata'
+
+LOGIN_REDIRECT_URL = 'attendance:dashboard'
+LOGOUT_REDIRECT_URL = 'login'

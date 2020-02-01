@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from geopy.distance import geodesic
 from MLendpoints.views import voiceit_create_user
+from django.contrib.auth.decorators import login_required
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -37,33 +38,33 @@ class CustomAuthToken(ObtainAuthToken):
 class register(APIView):
 
     def post(self,request):
+
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
         center_name = request.data.get('center_name')
+        contact_number = request.data.get('contact')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        print(password)
+
         try:
-            center = Centers.objects.filter(name=center_name).first()
+            center = Centers.objects.filter(name=str(center_name)).first()
         except:
             return  Response({'status':'Center Does not exist'})
         try:
-            user = User.objects.create(username=username, password=password, email=email)
+            user = User.objects.create(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
         except:
             return Response({'status':'User Name already exists'})
-        
-        return Response({'status':'User Created'})
 
-def upload(request):
-    user_id = request.POST('user_id')
-    file = request.FILES['file']
-    file_name = BASE_DIR + '/Attendance/' + user_id
-    with open(file_name, 'wb+') as destination:
-        for chunk in file.chunks():
-            destination.write(chunk)
-    if request.is_secure():
-        protocol = 'https://'
-    else:
-        protocol = 'http://'
-    # target_path = protocol + '127.0.0.1:8000/static/' + user_id
+        token, created = Token.objects.get_or_create(user=user)
+
+        res = voiceit_create_user(center.voiceit_id, user)
+        user_profile_voice_it = res[1]
+
+        user_profile = UserProfile.objects.create(user=user, center=center, is_office_admin=False, voiceit_id=user_profile_voice_it, contact_number=contact_number)
+        return Response({'status':'User Created', 'token': token.key, 'user_name': user.username})
+
 
 def registeradmin(request):
     if request.method == 'POST':
@@ -80,7 +81,7 @@ def registeradmin(request):
             last_name = userObj['last_name']
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                print(1)
+                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
                 try:
                     center = Centers.objects.filter(name=center_name, center_id=center_token).first()
                 except:
@@ -90,10 +91,8 @@ def registeradmin(request):
                                                         last_name=last_name)
                 voiceit_id = voiceit_create_user(center_token)
                 UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, mobile=contact_number, voiceit_id=voiceit_id)
-                print(2)
                 user = authenticate(username=username, password=password)
                 login(request, user)
-                print(3)
                 return HttpResponseRedirect('dashboard/')
 
             else:
@@ -103,6 +102,7 @@ def registeradmin(request):
     return render(request, 'signup.html', {'form' : form})
 
 
+@login_required(login_url='login')
 def dashboard(request):
     return render(request, 'index.html')
 
