@@ -1,8 +1,43 @@
 from django.shortcuts import render
 from voiceit2 import VoiceIt2
+from rest_framework.views import APIView
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+
+class CustomAuthToken(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                       context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'email': user.email
+        })
+
+class register(APIView):
+
+    def post(self,request):
+
+        username = request.data.get('username')
+        password = request.data.get('password')
+        email = request.data.get('email')
+        center_name = request.data.get('center_name')
+        try:
+            user = User.objects.create(username=username, password=password, email=email)
+        except:
+            return Response({'status':'User Name exists'})
+            
+        center = Centers.object.get.filter(name=center_name).first()
+        user_profile = UserProfile.objects.create(user=user, center=center, is_admin=False)
+
+        return Response({'status':'User Created'})
 
 
-# Create your views here.
 # usr_6a69dbdcedca4d6ea82c90a9af31b9f5 prashant
 # usr_afca986a9db2473d932228735d298957 siddharth
 # usr_361ea5aa209047189cc7222ff249a4e5 arpit
