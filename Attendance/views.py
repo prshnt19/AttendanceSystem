@@ -8,7 +8,8 @@ from django.contrib.auth import authenticate, login
 from .forms import UserRegistrationForm
 from django.http import HttpResponseRedirect
 from django import forms
-
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
 
 class CustomAuthToken(ObtainAuthToken):
 
@@ -129,9 +130,13 @@ def registeradmin(request):
                 User.objects.create_user(username, email, password)
                 user = authenticate(username = username, password = password)
                 login(request, user)
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('dashboard/')
+
             else:
                 raise forms.ValidationError('Looks like a username with that email or password already exists')
     else:
         form = UserRegistrationForm()
     return render(request, 'signup.html', {'form' : form})
+
+def dashboard(request):
+    return render(request, 'index.html')
