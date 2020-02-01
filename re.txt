@@ -1,20 +1,25 @@
-Package               Version   
---------------------- ----------
-asgiref               3.2.3     
-certifi               2019.11.28
-chardet               3.0.4     
-Django                3.0.2     
-django-templated-mail 1.1.1     
-djangorestframework   3.11.0    
-djoser                2.0.3     
-fcm-django            0.3.4     
-idna                  2.8       
-pip                   20.0.2    
-pyfcm                 1.4.7     
-pytz                  2019.3    
-requests              2.22.0    
-setuptools            45.1.0    
-sqlparse              0.3.0     
-urllib3               1.25.8    
-voiceit2              2.4.1     
-wheel                 0.34.2    
+amqp==1.4.9
+anyjson==0.3.3
+asgiref==3.2.3
+autopep8==1.5
+billiard==3.3.0.23
+celery==3.1.18
+certifi==2019.11.28
+chardet==3.0.4
+Django==3.0.2
+django-templated-mail==1.1.1
+djangorestframework==3.11.0
+djoser==2.0.3
+fcm-django==0.3.4
+geographiclib==1.50
+geopy==1.20.0
+idna==2.8
+kombu==3.0.37
+pycodestyle==2.5.0
+pyfcm==1.4.7
+pytz==2019.3
+redis==3.4.0
+requests==2.22.0
+sqlparse==0.3.0
+urllib3==1.25.8
+voiceit2==2.4.1
