@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+        <div class="app-main__outer">
+                    <div class="app-main__inner">
+
+                        <div class="tab-content">
+                            <div class="tab-pane tabs-animation fade show active" id="tab-content-0" role="tabpanel">
+                                <div class="main-card mb-3 card">
+                                    <div class="card-body"><h5 class="card-title">Registration Form</h5>
+                                        <form class="" method="post">
+                                            {% csrf_token %}
+                                            <div class="form-row">
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label class="">First Name</label><input name="first_name" id="first_name" placeholder=""  class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Last Name</label><input name="last_name" id="last_name" placeholder=""
+                                                                                                                                                             class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Username</label><input name="username" id="username" placeholder=""  class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Centre Token</label><input name="centre_id" id="centre_id" placeholder=""
+                                                                                                                                                             class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Centre Name</label><input name="centre_name" id="centre_name" placeholder=""
+                                                                                                                                                             class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Contact Number</label><input name="contact" id="contact" placeholder=""
+                                                                                                                                                             class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Email</label><input name="email" id="email" placeholder="" type="email" class="form-control"></div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="position-relative form-group"><label  class="">Password</label><input name="password" id="password" placeholder="" type="password"
+                                                                                                                                                             class="form-control"></div>
+                                                </div>
+{#                                                <div class="col-md-6">#}
+{#                                                    <div class="position-relative form-group"><label for="examplePassword11" class="">Confirm Password</label><input name="password" id="examplePassword11" placeholder="" type="password"#}
+{#                                                                                                                                                             class="form-control"></div>#}
+{#                                                </div>#}
+                                            </div>
+
+                                            <input type="submit" name="submit" id="submit" class="mt-2 btn btn-primary" value="Register"/>
+
+<!--                                            <div class="position-relative form-check"><input name="check" id="exampleCheck" type="checkbox" class="form-check-input"><label for="exampleCheck" class="form-check-label">Check me out</label></div>-->
+
+                                        </form>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>    </div>
+{%  endblock %}
+<script type="text/javascript" src="assets/scripts/main.js"></script></body>
+</html>
