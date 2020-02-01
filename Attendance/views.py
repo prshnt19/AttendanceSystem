@@ -15,7 +15,6 @@ from django.http import HttpResponseRedirect
 from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
-from geopy.distance import geodesic
 from MLendpoints.views import voiceit_create_user
 from django.contrib.auth.decorators import login_required
 
@@ -26,13 +25,16 @@ class CustomAuthToken(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data,
                                        context={'request': request})
         serializer.is_valid(raise_exception=True)
+        userprofile = UserProfile.objects.get(user=user)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
-        # userprofile = UserProfile.objects.get(user=user)
+        
+        center = userprofile.center
         return Response({
             'token': token.key,
             'user_id': user.pk,
-            'email': user.email
+            'email': user.email,
+            'center_id': center.pk
         })
 
 
@@ -116,20 +118,5 @@ def dashboard(request):
     return render(request, 'index.html', context)
 
 
-def in_range():
-    '''
-    >>> from geopy.distance import geodesic
-    >>> newport_ri = (41.49008, -71.312796)
-    >>> cleveland_oh = (41.499498, -81.695391)
-    >>> print(geodesic(newport_ri, cleveland_oh).miles)
-    538.390445368
-    '''
-    centre_coordinates = (41.499498, -81.695356)
-    user_coordiantes = (41.499498, -81.695391)
-    distance = geodesic(centre_coordinates, user_coordiantes).meters
-    print(distance)
-    if distance < 30:
-        return True
-    else:
-        return False
+
 
