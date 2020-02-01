@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from attendance_system.settings import BASE_DIR
+import os
 from voiceit2 import VoiceIt2
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -39,7 +41,7 @@ class register(APIView):
             user = User.objects.create(username=username, password=password, email=email)
         except:
             return Response({'status':'User Name exists'})
-            
+
         center = Centers.object.get.filter(name=center_name).first()
         user_profile = UserProfile.objects.create(user=user, center=center, is_admin=False)
 
@@ -119,6 +121,20 @@ def voiceit_verification(request):
         return [False, response['message']]
 
 
+def upload(request):
+    user_id = request.POST('user_id')
+    file = request.FILES['file']
+    file_name = BASE_DIR + '/Attendance/' + user_id
+    with open(file_name, 'wb+') as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
+    if request.is_secure():
+        protocol = 'https://'
+    else:
+        protocol = 'http://'
+    # target_path = protocol + '127.0.0.1:8000/static/' + user_id
+
+
 def registeradmin(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -138,6 +154,7 @@ def registeradmin(request):
     else:
         form = UserRegistrationForm()
     return render(request, 'signup.html', {'form' : form})
+
 
 def dashboard(request):
     return render(request, 'index.html')
