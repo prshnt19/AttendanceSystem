@@ -82,21 +82,24 @@ def voiceit_verification(user_id, file_path, phrase):
         return [False, response['message']]
 
 class TrainVideo(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     # def get(self,request):
         
     #     location = Location.objects.all()
     #     serializer = LocationSerializer(location, many=True)
     #     return Response({"location": serializer})
-    def post(self,request):
+    def post(self,request,format=None):
         token_number = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
         token = Token.objects.get(key=token_number)
+        print(token_number)
         user = token.user
+        print(user)
 
         file_name = upload(request.data['video'], user.id)
         
         phrase = 'my face and voice identify me'
         userprofile = UserProfile.objects.filter(user=user).first()
+        print(userprofile)
         voiceit_enroll_user(userprofile.voiceit_id, file_name, phrase)
         
         return Response({'status':'sent'})
@@ -116,13 +119,13 @@ def upload(file, user_id):
     # target_path = protocol + '127.0.0.1:8000/static/' + user_id
 
 class TestVideo(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     # def get(self,request):
         
     #     location = Location.objects.all()
     #     serializer = LocationSerializer(location, many=True)
     #     return Response({"location": serializer})
-    def post(self,request):
+    def post(self,request,format=None ):
         token_number = request.META.get('HTTP_AUTHORIZATION', None).split(' ')[1]
         token = Token.objects.get(key=token_number)
         user = token.user
@@ -133,9 +136,9 @@ class TestVideo(APIView):
         userprofile = UserProfile.objects.filter(user=user).first()
         res = voiceit_verification(userprofile.voiceit_id, file_name, phrase)
         if res[0] is True:
-            return Response({'video':'verified'})
+            return Response({'video':'verified','response':res[1]})
         else:
-            return Response({'video':'not_verified'})
+            return Response({'video':'not_verified','response':res[1]})
 # class test1(APIView):
 #     # def get(self,request):
         

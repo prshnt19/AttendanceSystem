@@ -38,13 +38,13 @@ class register(APIView):
 
     def post(self,request):
         
-        username = request.data.get('username')
-        password = request.data.get('password')
-        email = request.data.get('email')
-        center_name = request.data.get('center_name')
-        contact_number = request.data.get('contact')
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
+        username = str(request.data.get('username'))
+        password = str(request.data.get('password'))
+        email = str(request.data.get('email'))
+        center_name = str(request.data.get('center_name'))
+        contact_number = str(request.data.get('contact'))
+        first_name = str(request.data.get('first_name'))
+        last_name = str(request.data.get('last_name'))
         print(password)
 
         try:
@@ -52,7 +52,7 @@ class register(APIView):
         except:
             return  Response({'status':'Center Does not exist'})
         try:
-            user = User.objects.create(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
         except:
             return Response({'status':'User Name already exists'})
         
