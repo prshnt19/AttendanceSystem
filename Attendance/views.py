@@ -14,6 +14,7 @@ from django.http import HttpResponseRedirect
 from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
+from geopy.distance import geodesic
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -100,3 +101,22 @@ def registeradmin(request):
 
 def dashboard(request):
     return render(request, 'index.html')
+
+
+def in_range():
+    '''
+    >>> from geopy.distance import geodesic
+    >>> newport_ri = (41.49008, -71.312796)
+    >>> cleveland_oh = (41.499498, -81.695391)
+    >>> print(geodesic(newport_ri, cleveland_oh).miles)
+    538.390445368
+    '''
+    centre_coordinates = (41.499498, -81.695356)
+    user_coordiantes = (41.499498, -81.695391)
+    distance = geodesic(centre_coordinates, user_coordiantes).meters
+    print(distance)
+    if distance < 30:
+        return True
+    else:
+        return False
+
