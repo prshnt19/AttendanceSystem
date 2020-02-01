@@ -2,7 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated 
+# from .serializer import LocationSerializer
 from django.contrib.auth.models import User
+from voiceit2 import VoiceIt2
 from Attendance.models import UserProfile
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
@@ -84,7 +86,7 @@ def voiceit_verification(user_id, file_path, phrase):
 class TrainVideo(APIView):
     permission_classes = (AllowAny,)
     # def get(self,request):
-        
+
     #     location = Location.objects.all()
     #     serializer = LocationSerializer(location, many=True)
     #     return Response({"location": serializer})
@@ -96,12 +98,12 @@ class TrainVideo(APIView):
         print(user)
 
         file_name = upload(request.data['video'], user.id)
-        
+
         phrase = 'my face and voice identify me'
         userprofile = UserProfile.objects.filter(user=user).first()
         print(userprofile)
         voiceit_enroll_user(userprofile.voiceit_id, file_name, phrase)
-        
+
         return Response({'status':'sent'})
 
 def upload(file, user_id):
@@ -109,8 +111,8 @@ def upload(file, user_id):
     with open(file_name, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
-    print(file_name)        
-    return file_name        
+    print(file_name)
+    return file_name
     # if request.is_secure():
     #     protocol = 'https://'
     # else:

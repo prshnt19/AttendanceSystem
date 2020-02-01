@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 
 class Centers(models.Model):
     name = models.CharField(max_length=15, default=None)
-    center_id = models.UUIDField( 
+    center_id = models.CharField(
+         max_length=5,
          primary_key=True,
          default=str(uuid.uuid4())[31:],
          editable=False)
@@ -13,15 +14,16 @@ class Centers(models.Model):
 
 
 class UserProfile(models.Model):
-    center = models.ForeignKey(Centers, on_delete=models.CASCADE, )
+    center = models.ForeignKey(Centers, on_delete=models.CASCADE)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_office_admin = models.NullBooleanField(default=None)
     voiceit_id = models.CharField(max_length=40, default=None)
-    contact_number = models.CharField(max_length=10, default=None)
+    contact_number = models.CharField(max_length=11, default=None)
 
 
 class AttendanceTable(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    center = models.ForeignKey(Centers, on_delete=models.CASCADE)
     date = models.DateTimeField()
     location_verified = models.NullBooleanField(default=None)
     voice_verified = models.NullBooleanField(default=None)
