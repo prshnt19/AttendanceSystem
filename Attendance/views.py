@@ -15,6 +15,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from geopy.distance import geodesic
+from MLendpoints.views import voiceit_create_user
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -36,14 +37,12 @@ class CustomAuthToken(ObtainAuthToken):
 class register(APIView):
 
     def post(self,request):
-        
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
         center_name = request.data.get('center_name')
-
         try:
-            center = Centers.object.get.filter(name=center_name).first()
+            center = Centers.objects.filter(name=center_name).first()
         except:
             return  Response({'status':'Center Does not exist'})
         try:
@@ -81,15 +80,20 @@ def registeradmin(request):
             last_name = userObj['last_name']
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
+                print(1)
                 try:
                     center = Centers.objects.filter(name=center_name, center_id=center_token).first()
                 except:
                     return forms.ValidationError('Center token or name Invalid')
-                    
-                UserProfile.objects.create(user=user_created, center = center, is_office_admin = True)
-                user = authenticate(username = username, password = password)
+
+                user_created = User.objects.create_user(username, email, password, first_name=first_name,
+                                                        last_name=last_name)
+                voiceit_id = voiceit_create_user(center_token)
+                UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, mobile=contact_number, voiceit_id=voiceit_id)
+                print(2)
+                user = authenticate(username=username, password=password)
                 login(request, user)
+                print(3)
                 return HttpResponseRedirect('dashboard/')
 
             else:

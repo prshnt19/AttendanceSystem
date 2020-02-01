@@ -2,8 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated 
-from .serializer import LocationSerializer
+# from .serializer import LocationSerializer
 from django.contrib.auth.models import User
+from voiceit2 import VoiceIt2
 
 # usr_6a69dbdcedca4d6ea82c90a9af31b9f5 prashant
 # usr_afca986a9db2473d932228735d298957 siddharth
