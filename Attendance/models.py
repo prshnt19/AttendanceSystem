@@ -11,6 +11,8 @@ class Centers(models.Model):
          default=str(uuid.uuid4())[31:],
          editable=False)
     voiceit_id = models.CharField(max_length=40, default=None)
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
 
 
 class UserProfile(models.Model):
@@ -24,10 +26,10 @@ class UserProfile(models.Model):
 class AttendanceTable(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     center = models.ForeignKey(Centers, on_delete=models.CASCADE)
-    date = models.DateTimeField()
+    date = models.DateTimeField(auto_now=True)
     location_verified = models.NullBooleanField(default=None)
-    voice_verified = models.NullBooleanField(default=None)
-    face_verified = models.NullBooleanField(default=None)
+    voice_face_verified = models.NullBooleanField(default=None)
+    present = models.NullBooleanField(default=None)
 
 
 class Video(models.Model):
