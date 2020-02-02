@@ -3,12 +3,8 @@ from attendance_system.settings import BASE_DIR
 import datetime
 import os
 from voiceit2 import VoiceIt2
-<<<<<<< HEAD
-from .models import UserProfile, Centers
-=======
 from django.contrib.auth.models import User
 from .models import UserProfile, Centers, AttendanceTable
->>>>>>> 646c9fa6359712bddf3a3d14680f888a83a40232
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -88,19 +84,19 @@ def registeradmin(request):
             last_name = userObj['last_name']
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
+                
                 try:
                     center = Centers.objects.filter(name=center_name, center_id=center_token).first()
                 except:
                     return forms.ValidationError('Center token or name Invalid')
-
-                user_created = User.objects.create_user(username, email, password, first_name=first_name,
-                                                        last_name=last_name)
-                voiceit_id = voiceit_create_user(center_token)
+                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)    
+                print("1")
+                voiceit_id = voiceit_create_user(center_token, user_created)
                 UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, contact_number=contact_number, voiceit_id=voiceit_id)
+                
                 user = authenticate(username=username, password=password)
                 login(request, user)
-                return HttpResponseRedirect('dashboard/')
+                return HttpResponseRedirect('/dashboard/')
 
             else:
                 raise forms.ValidationError('Looks like a username with that email or password already exists')
@@ -114,9 +110,10 @@ def dashboard(request):
     user_profile = UserProfile.objects.filter(user=request.user).first()
     print(request.user)
     center = user_profile.center
-    employee_count = Centers.objects.filter(id=center.id).count()
+    employee_count = UserProfile.objects.filter(center=center).all().count()
     print(employee_count)
-    employee_present = AttendanceTable.objects.filter(center=center.id, date=datetime.date.today()).count()
+    d = datetime.now()
+    employee_present = AttendanceTable.objects.filter(center=center, date__gte=d.date(), date__lt=d.date()+timedelta(days=1)).count()
     print(employee_present)
     context = dict()
     return render(request, 'index.html', context)
