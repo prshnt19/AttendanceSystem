@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from voiceit2 import VoiceIt2
 from Attendance.models import UserProfile, AttendanceTable
+import datetime
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from attendance_system.settings import BASE_DIR, api_key, api_token
@@ -155,13 +156,21 @@ class TestVideo(APIView):
             attendancetable.save()
         if attendancetable.location_verified is True and attendancetable.voice_face_verified is True:
             attendancetable.present = True
-            return Response({'video':'verified', 'location': 'verified', 'response':res[1]})
+            date_time = datetime.datetime.now()
+            if (attendancetable.date < datetime.datetime(date_time.year, date_time.month, date_time.day) +
+                                                    datetime.timedelta(hours=10)):
+                attendancetable.status = 'On Time'
+            else:
+                attendancetable.status = 'Late'
+            return Response({'video': 'verified', 'location': 'verified', 'response': res[1]})
         elif attendancetable.location_verified is True:
-            return Response({'video':'not_verified', 'location': 'verified', 'response':res[1]})
+            attendancetable.status = 'Video Authentication Failed'
+            return Response({'video': 'not_verified', 'location': 'verified', 'response': res[1]})
         elif attendancetable.voice_face_verified is True:
-            return Response({'video':'verified', 'location': 'not_verified', 'response':res[1]})
+            attendancetable.status = 'Location Authentication Failed'
+            return Response({'video': 'verified', 'location': 'not_verified', 'response': res[1]})
         else:
-            return Response({'video':'not_verified', 'location': 'not_verified', 'response':res[1]})
+            return Response({'video': 'not_verified', 'location': 'not_verified', 'response': res[1]})
 
 
 

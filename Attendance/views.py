@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.utils.translation import gettext as _
-from attendance_system.settings import BASE_DIR
+from attendance_system.settings import BASE_DIR, TIME_ZONE
 import datetime
+from django.utils.timezone import make_aware
 import os
 from voiceit2 import VoiceIt2
 from django.contrib.auth.models import User
@@ -101,7 +102,7 @@ def registeradmin(request):
                 print("1")
                 voiceit_id = voiceit_create_user(center_token, user_created)
                 UserProfile.objects.create(user=user_created, center=center, is_office_admin=True,
-                                           contact_number=contact_number, voiceit_id=voiceit_id)
+                                           contact_number=contact_number, voiceit_id=voiceit_id[1])
 
                 user = authenticate(username=username, password=password)
                 login(request, user)
@@ -120,15 +121,30 @@ def dashboard(request):
     print(request.user)
     center = user_profile.center
     employees = UserProfile.objects.filter(center=center).values('user', 'user__first_name', 'user__last_name')
-    print(employees)
+    print('employees:', employees)
     count_employee = employees.count()
     print(count_employee)
     date_time = datetime.datetime.now()
+    # TIME_ZONE
+    # aware_datetime = make_aware(date_time)
+    # aware_datetime.tzinfo
     count_present = AttendanceTable.objects.filter(center=center, date__gte=date_time.date(),
                                                    date__lt=date_time.date() + datetime.timedelta(days=1)).count()
-    print(count_present)
-    count_late = AttendanceTable.objects.filter(center=center, date__gte=datetime.datetime(date_time.year,
-                                                date_time.month, date_time.day) + datetime.timedelta(hours=9)).count()
+    print('count_present:', count_present)
+    late = AttendanceTable.objects.filter(center=center,
+                                          date__gte=datetime.datetime(date_time.year, date_time.month, date_time.day) +
+                                                    datetime.timedelta(hours=9)).values('user_id')
+    count_late = late.count()
+    print('late:', late)
+    print('count_late:', count_late)
+    for late_comer in late:
+        for employee in employees:
+            if employee['user'] == late_comer['user_id']:
+                employee['status'] = 'Late'
+            else:
+                employee['status'] = 'Present'
+
+    print('employees:', employees)
     context = {'count_employee': count_employee, 'count_present': count_present, 'count_late': count_late,
-               'employees': employees}
+               'employees': employees, 'yet_to_come': count_employee-count_present}
     return render(request, 'index.html', context)
