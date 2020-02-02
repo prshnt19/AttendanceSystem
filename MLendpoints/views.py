@@ -72,6 +72,9 @@ def voiceit_verification(user_id, file_path, phrase):
     video = open(file_path, 'rb')
     response = my_voiceit.video_verification(user_id=user_id, lang=content_language, phrase=phrase,
                                              file_buffer=video)
+    if response['voiceConfidence'] > 50 and response['faceConfidence'] > 50 and response['textConfidence'] > 50:
+        return [True, response['message']]
+
     if response['responseCode'] == 'SUCC':
         return [True, response['message']]
     else:
@@ -128,8 +131,10 @@ class TestVideo(APIView):
 
         file_name = upload(request.data['video'], user.id)
 
-        longitude = float(request.data.get('longitude'))
-        latitude = float(request.data.get('latitude'))
+        # longitude = float(request.data.get('longitude'))
+        # latitude = float(request.data.get('latitude'))
+        longitude = float(2)
+        latitude = float(2)
         user_coordinates = (latitude, longitude)
 
         phrase = 'my face and voice identify me'
