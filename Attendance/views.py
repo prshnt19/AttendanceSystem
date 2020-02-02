@@ -82,7 +82,6 @@ def registeradmin(request):
             last_name = userObj['last_name']
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
                 try:
                     center = Centers.objects.filter(name=center_name, center_id=center_token).first()
                 except:
@@ -90,7 +89,7 @@ def registeradmin(request):
 
                 user_created = User.objects.create_user(username, email, password, first_name=first_name,
                                                         last_name=last_name)
-                voiceit_id = voiceit_create_user(center_token)
+                voiceit_id = voiceit_create_user(center_token, user_created)
                 UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, contact_number=contact_number, voiceit_id=voiceit_id)
                 user = authenticate(username=username, password=password)
                 login(request, user)
@@ -108,9 +107,9 @@ def dashboard(request):
     user_profile = UserProfile.objects.filter(user=request.user).first()
     print(request.user)
     center = user_profile.center
-    employee_count = Centers.objects.filter(id=center.id).count()
+    employee_count = Centers.objects.filter(pk=center.pk).count()
     print(employee_count)
-    employee_present = AttendanceTable.objects.filter(center=center.id, date=datetime.date.today()).count()
+    employee_present = AttendanceTable.objects.filter(center=center.pk, date=datetime.date.today()).count()
     print(employee_present)
     context = dict()
     return render(request, 'index.html', context)
