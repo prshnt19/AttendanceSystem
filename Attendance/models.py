@@ -14,6 +14,9 @@ class Centers(models.Model):
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
 
+    def __str__(self):
+        return self.name
+
 
 class UserProfile(models.Model):
     center = models.ForeignKey(Centers, on_delete=models.CASCADE)
@@ -30,6 +33,7 @@ class AttendanceTable(models.Model):
     location_verified = models.NullBooleanField(default=None)
     voice_face_verified = models.NullBooleanField(default=None)
     present = models.NullBooleanField(default=None)
+    status = models.CharField(max_length=30, default='Not Present', blank=True)
 
 
 class Video(models.Model):
