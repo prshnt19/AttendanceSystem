@@ -25,8 +25,8 @@ class CustomAuthToken(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data,
                                        context={'request': request})
         serializer.is_valid(raise_exception=True)
-        userprofile = UserProfile.objects.get(user=user)
         user = serializer.validated_data['user']
+        userprofile = UserProfile.objects.get(user=user)
         token, created = Token.objects.get_or_create(user=user)
         
         center = userprofile.center

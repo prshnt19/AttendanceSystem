@@ -127,13 +127,14 @@ class TestVideo(APIView):
 
         file_name = upload(request.data['video'], user.id)
 
-        longitude = float(request.data.get('longitude'))
-        latitude = float(request.data.get('latitude'))
+        # longitude = float(request.data.get('longitude'))
+        #latitude = float(request.data.get('latitude'))
+        longitude = float(2)
+        latitude = float(2)
         user_coordinates = (latitude, longitude)
 
         phrase = 'my face and voice identify me'
         userprofile = UserProfile.objects.filter(user=user).first()
-
         center = userprofile.center
         center_coordinates = (center.latitude, center.longitude)
         location_verified = in_range(center_coordinates, user_coordinates)
