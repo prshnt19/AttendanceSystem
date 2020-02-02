@@ -134,21 +134,34 @@ def dashboard(request):
     late = AttendanceTable.objects.filter(center=center,
                                           date__gte=datetime.datetime(date_time.year, date_time.month, date_time.day) +
                                                     datetime.timedelta(hours=9)).values('user_id')
-    timestamp = AttendanceTable.objects.filter(center=center, date__gte=date_time.date(),
-                                                   date__lt=date_time.date() + datetime.timedelta(days=1)).values('date')
-    print(timestamp,"-->timestamp")
+    all_present = AttendanceTable.objects.filter(center=center,
+                                          date__gte=datetime.datetime(date_time.year, date_time.month, date_time.day) +
+                                                    datetime.timedelta(hours=0)).values('user_id')
+    # timestamp = AttendanceTable.objects.filter(center=center, date__gte=date_time.date(),
+    #                                                date__lt=date_time.date() + datetime.timedelta(days=1)).values('datetime')
+    # print(timestamp,"-->timestamp")
     count_late = late.count()
     print('late:', late)
     print('count_late:', count_late)
 
     for employee in employees:
-        employee['status'] = 'Present'
+        employee['status'] = 'Absent'
+
+        for on_timer in all_present:
+            if employee['user'] == on_timer['user_id']:
+                employee['status'] = 'On Time'
+
         for late_comer in late:
             if employee['user'] == late_comer['user_id']:
                 employee['status'] = 'Late'
+
 
 
     print('employees:', employees)
     context = {'count_employee': count_employee, 'count_present': count_present, 'count_late': count_late,
                'employees': employees, 'yet_to_come': count_employee-count_present}
     return render(request, 'index.html', context)
+
+
+def statistics(request):
+    return render(request, "charts-chartjs.html")

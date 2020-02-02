@@ -143,6 +143,7 @@ class TestVideo(APIView):
         center = userprofile.center
         center_coordinates = (center.latitude, center.longitude)
         location_verified = in_range(center_coordinates, user_coordinates)
+        location_verified = True
 
         attendancetable = AttendanceTable.objects.create(user=user, center=center)
         if location_verified is True:
@@ -162,17 +163,20 @@ class TestVideo(APIView):
         if attendancetable.location_verified is True and attendancetable.voice_face_verified is True:
             attendancetable.present = True
             date_time = datetime.datetime.now()
-            if (attendancetable.date < datetime.datetime(date_time.year, date_time.month, date_time.day) +
-                                                    datetime.timedelta(hours=10)):
+            if (attendancetable.date < datetime.datetime(date_time.year, date_time.month, date_time.day, 10)):
                 attendancetable.status = 'On Time'
             else:
                 attendancetable.status = 'Late'
+            attendancetable.save()
             return Response({'video': 'verified', 'location': 'verified', 'response': res[1]})
+
         elif attendancetable.location_verified is True:
             attendancetable.status = 'Video Authentication Failed'
+            attendancetable.save()
             return Response({'video': 'not_verified', 'location': 'verified', 'response': res[1]})
         elif attendancetable.voice_face_verified is True:
             attendancetable.status = 'Location Authentication Failed'
+            attendancetable.save()
             return Response({'video': 'verified', 'location': 'not_verified', 'response': res[1]})
         else:
             return Response({'video': 'not_verified', 'location': 'not_verified', 'response': res[1]})
