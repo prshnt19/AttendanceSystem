@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils.timezone import make_aware
+import pytz
 from attendance_system.settings import BASE_DIR, TIME_ZONE
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated 
@@ -168,7 +169,8 @@ class TestVideo(APIView):
             # TIME_ZONE
             aware_datetime = make_aware(date_time)
             aware_datetime.tzinfo
-            if (attendancetable.date < datetime.datetime(date_time.year, date_time.month, date_time.day, 10)):
+            intz = pytz.timezone('Asia/Kolkata')
+            if (attendancetable.date < datetime.datetime(date_time.year, date_time.month, date_time.day, 10, tzinfo=intz)):
                 attendancetable.status = 'On Time'
             else:
                 attendancetable.status = 'Late'
