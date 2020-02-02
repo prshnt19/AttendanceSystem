@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -152,7 +152,10 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIME_ZONE =  'Asia/Kolkata'
+CELERY_TIME_ZONE = 'Asia/Kolkata'
 
 LOGIN_REDIRECT_URL = 'attendance:dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
+api_key = 'key_64edce00a02e4ab2b359795016565d11'
+api_token = 'tok_c43630b526d04019b52228e70647d6ba'

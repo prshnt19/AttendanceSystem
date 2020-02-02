@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from attendance_system.settings import BASE_DIR
+import datetime
 import os
 from voiceit2 import VoiceIt2
 from django.contrib.auth.models import User
-from .models import UserProfile, Centers
+from .models import UserProfile, Centers, AttendanceTable
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -14,9 +15,8 @@ from django.http import HttpResponseRedirect
 from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
-from geopy.distance import geodesic
-from django.contrib.auth.decorators import login_required
 from MLendpoints.views import voiceit_create_user
+from django.contrib.auth.decorators import login_required
 
 #kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
@@ -25,13 +25,16 @@ class CustomAuthToken(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data,
                                        context={'request': request})
         serializer.is_valid(raise_exception=True)
+        userprofile = UserProfile.objects.get(user=user)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
-        # userprofile = UserProfile.objects.get(user=user)
+        
+        center = userprofile.center
         return Response({
             'token': token.key,
             'user_id': user.pk,
-            'email': user.email
+            'email': user.email,
+            'center_id': center.pk
         })
 
 
@@ -53,7 +56,7 @@ class register(APIView):
         except:
             return  Response({'status':'Center Does not exist'})
         try:
-            user = User.objects.create(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
         except:
             return Response({'status':'User Name already exists'})
 
@@ -64,7 +67,6 @@ class register(APIView):
 
         user_profile = UserProfile.objects.create(user=user, center=center, is_office_admin=False, voiceit_id=user_profile_voice_it, contact_number=contact_number)
         return Response({'status':'User Created', 'token': token.key, 'user_name': user.username})
-
 
 
 def registeradmin(request):
@@ -82,16 +84,19 @@ def registeradmin(request):
             last_name = userObj['last_name']
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
-                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
+                
                 try:
                     center = Centers.objects.filter(name=center_name, center_id=center_token).first()
                 except:
                     return forms.ValidationError('Center token or name Invalid')
-
-                UserProfile.objects.create(user=user_created, center = center, is_office_admin = True)
-                user = authenticate(username = username, password = password)
+                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)    
+                print("1")
+                voiceit_id = voiceit_create_user(center_token, user_created)
+                UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, contact_number=contact_number, voiceit_id=voiceit_id)
+                
+                user = authenticate(username=username, password=password)
                 login(request, user)
-                return HttpResponseRedirect('dashboard/')
+                return HttpResponseRedirect('/dashboard/')
 
             else:
                 raise forms.ValidationError('Looks like a username with that email or password already exists')
@@ -102,24 +107,17 @@ def registeradmin(request):
 
 @login_required(login_url='login')
 def dashboard(request):
+    user_profile = UserProfile.objects.filter(user=request.user).first()
+    print(request.user)
+    center = user_profile.center
+    employee_count = UserProfile.objects.filter(center=center).all().count()
+    print(employee_count)
+    d = datetime.now()
+    employee_present = AttendanceTable.objects.filter(center=center, date__gte=d.date(), date__lt=d.date()+timedelta(days=1)).count()
+    print(employee_present)
+    context = dict()
+    return render(request, 'index.html', context)
 
-    return render(request, 'index.html')
 
 
-def in_range():
-    '''
-    >>> from geopy.distance import geodesic
-    >>> newport_ri = (41.49008, -71.312796)
-    >>> cleveland_oh = (41.499498, -81.695391)
-    >>> print(geodesic(newport_ri, cleveland_oh).miles)
-    538.390445368
-    '''
-    centre_coordinates = (41.499498, -81.695356)
-    user_coordiantes = (41.499498, -81.695391)
-    distance = geodesic(centre_coordinates, user_coordiantes).meters
-    print(distance)
-    if distance < 30:
-        return True
-    else:
-        return False
 
