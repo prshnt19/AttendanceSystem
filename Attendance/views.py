@@ -134,15 +134,19 @@ def dashboard(request):
     late = AttendanceTable.objects.filter(center=center,
                                           date__gte=datetime.datetime(date_time.year, date_time.month, date_time.day) +
                                                     datetime.timedelta(hours=9)).values('user_id')
+    timestamp = AttendanceTable.objects.filter(center=center, date__gte=date_time.date(),
+                                                   date__lt=date_time.date() + datetime.timedelta(days=1)).values('date')
+    print(timestamp,"-->timestamp")
     count_late = late.count()
     print('late:', late)
     print('count_late:', count_late)
-    for late_comer in late:
-        for employee in employees:
+
+    for employee in employees:
+        employee['status'] = 'Present'
+        for late_comer in late:
             if employee['user'] == late_comer['user_id']:
                 employee['status'] = 'Late'
-            else:
-                employee['status'] = 'Present'
+
 
     print('employees:', employees)
     context = {'count_employee': count_employee, 'count_present': count_present, 'count_late': count_late,
