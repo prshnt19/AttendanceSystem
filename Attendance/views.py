@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 from attendance_system.settings import BASE_DIR
 import datetime
 import os
@@ -11,22 +12,23 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 from .forms import UserRegistrationForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django import forms
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from MLendpoints.views import voiceit_create_user
 from django.contrib.auth.decorators import login_required
 
-#kind of login returns jwt token and stuff
+
+# kind of login returns jwt token and stuff
 class CustomAuthToken(ObtainAuthToken):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
-                                       context={'request': request})
+                                           context={'request': request})
         serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']  # prashant edited arpit
         userprofile = UserProfile.objects.get(user=user)
-        user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
 
         center = userprofile.center
@@ -40,7 +42,7 @@ class CustomAuthToken(ObtainAuthToken):
 
 class register(APIView):
 
-    def post(self,request):
+    def post(self, request):
 
         username = request.data.get('username')
         password = request.data.get('password')
@@ -54,19 +56,21 @@ class register(APIView):
         try:
             center = Centers.objects.filter(name=str(center_name)).first()
         except:
-            return  Response({'status':'Center Does not exist'})
+            return Response({'status': 'Center Does not exist'})
         try:
-            user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name,last_name=last_name)
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name,
+                                            last_name=last_name)
         except:
-            return Response({'status':'User Name already exists'})
+            return Response({'status': 'User Name already exists'})
 
         token, created = Token.objects.get_or_create(user=user)
 
         res = voiceit_create_user(center.voiceit_id, user)
         user_profile_voice_it = res[1]
 
-        user_profile = UserProfile.objects.create(user=user, center=center, is_office_admin=False, voiceit_id=user_profile_voice_it, contact_number=contact_number)
-        return Response({'status':'User Created', 'token': token.key, 'user_name': user.username})
+        user_profile = UserProfile.objects.create(user=user, center=center, is_office_admin=False,
+                                                  voiceit_id=user_profile_voice_it, contact_number=contact_number)
+        return Response({'status': 'User Created', 'token': token.key, 'user_name': user.username})
 
 
 def registeradmin(request):
@@ -75,8 +79,8 @@ def registeradmin(request):
         if form.is_valid():
             userObj = form.cleaned_data
             username = userObj['username']
-            email =  userObj['email']
-            password =  userObj['password']
+            email = userObj['email']
+            password = userObj['password']
             center_token = userObj['centre_id']
             contact_number = userObj['contact']
             center_name = userObj['centre_name']
@@ -85,13 +89,19 @@ def registeradmin(request):
 
             if not (User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists()):
                 try:
-                    center = Centers.objects.filter(name=center_name, center_id=center_token).first()
+                    # print(center_name, center_token)
+                    center = Centers.objects.filter(name=center_name, voiceit_id=center_token).first()
+                    # print(center)
+                    # print(center.pk)
                 except:
-                    return forms.ValidationError('Center token or name Invalid')
-                user_created = User.objects.create_user(username, email, password, first_name=first_name, last_name=last_name)
+                    # return forms.ValidationError(_('Center token or name Invalid'), code='invalid')
+                    return HttpResponse('Center token or name Invalid')
+                user_created = User.objects.create_user(username, email, password, first_name=first_name,
+                                                        last_name=last_name)
                 print("1")
                 voiceit_id = voiceit_create_user(center_token, user_created)
-                UserProfile.objects.create(user=user_created, center=center, is_office_admin=True, contact_number=contact_number, voiceit_id=voiceit_id)
+                UserProfile.objects.create(user=user_created, center=center, is_office_admin=True,
+                                           contact_number=contact_number, voiceit_id=voiceit_id)
 
                 user = authenticate(username=username, password=password)
                 login(request, user)
@@ -101,7 +111,7 @@ def registeradmin(request):
                 raise forms.ValidationError('Looks like a username with that email or password already exists')
     else:
         form = UserRegistrationForm()
-    return render(request, 'signup.html', {'form' : form})
+    return render(request, 'signup.html', {'form': form})
 
 
 @login_required(login_url='login')
@@ -109,14 +119,16 @@ def dashboard(request):
     user_profile = UserProfile.objects.filter(user=request.user).first()
     print(request.user)
     center = user_profile.center
-    employee_count = UserProfile.objects.filter(center=center).all().count()
-    print(employee_count)
-    d = datetime.now()
-    employee_present = AttendanceTable.objects.filter(center=center, date__gte=d.date(), date__lt=d.date()+timedelta(days=1)).count()
-    print(employee_present)
-    context = dict()
+    employees = UserProfile.objects.filter(center=center).values('user', 'user__first_name', 'user__last_name')
+    print(employees)
+    count_employee = employees.count()
+    print(count_employee)
+    date_time = datetime.datetime.now()
+    count_present = AttendanceTable.objects.filter(center=center, date__gte=date_time.date(),
+                                                   date__lt=date_time.date() + datetime.timedelta(days=1)).count()
+    print(count_present)
+    count_late = AttendanceTable.objects.filter(center=center, date__gte=datetime.datetime(date_time.year,
+                                                date_time.month, date_time.day) + datetime.timedelta(hours=9)).count()
+    context = {'count_employee': count_employee, 'count_present': count_present, 'count_late': count_late,
+               'employees': employees}
     return render(request, 'index.html', context)
-
-
-
-
