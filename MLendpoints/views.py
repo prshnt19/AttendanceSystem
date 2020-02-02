@@ -1,5 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.utils.timezone import make_aware
+from attendance_system.settings import BASE_DIR, TIME_ZONE
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated 
 # from .serializer import LocationSerializer
@@ -163,6 +165,9 @@ class TestVideo(APIView):
         if attendancetable.location_verified is True and attendancetable.voice_face_verified is True:
             attendancetable.present = True
             date_time = datetime.datetime.now()
+            # TIME_ZONE
+            aware_datetime = make_aware(date_time)
+            aware_datetime.tzinfo
             if (attendancetable.date < datetime.datetime(date_time.year, date_time.month, date_time.day, 10)):
                 attendancetable.status = 'On Time'
             else:
